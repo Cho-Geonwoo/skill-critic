@@ -18,6 +18,7 @@ cd skill-critic
 
 # install requirements and package
 pip3 install -r requirements.txt
+conda install mpi4py
 pip3 install -e .
 ```
 

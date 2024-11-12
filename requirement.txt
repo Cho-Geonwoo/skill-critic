@@ -15,7 +15,7 @@ gym==0.23.1
 pandas
 
 wandb
-mpi4py
+
 mujoco_py
 
 scikit-learn

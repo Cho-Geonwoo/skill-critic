@@ -2,7 +2,7 @@
 import os
 
 from src.configs.skill.point_maze.hierarchical_cl.conf import * 
-from src.models.cond_dec_spirl_mdl import ImageTimeIndexCDsrcMDL
+from src.models.cond_dec_spirl_mdl import ImageTimeIndexCDSPiRLMDL
 
 from src.components.logger import Logger
 from src.utils.general_utils import AttrDict
@@ -12,7 +12,7 @@ from src.components.evaluator import TopOfNSequenceEvaluator
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
 configuration = {
-    'model': ImageTimeIndexCDsrcMDL,
+    'model': ImageTimeIndexCDSPiRLMDL,
     'logger': Logger,
     'data_dir': os.path.join(os.environ['DATA_DIR'], 'point_maze'),
     'epoch_cycles_train': 10,

@@ -1,7 +1,7 @@
 import os
 
 from src.models.skill_prior_mdl import SkillSpaceLogger
-from src.models.closed_loop_spirl_mdl import ImageClsrcMdl
+from src.models.closed_loop_spirl_mdl import ImageClSPiRLMdl
 from src.utils.general_utils import AttrDict
 from src.configs.default_data_configs.point_maze import data_spec
 from src.components.evaluator import TopOfNSequenceEvaluator
@@ -11,7 +11,7 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 configuration = {
-    'model': ImageClsrcMdl,
+    'model': ImageClSPiRLMdl,
     'logger': SkillSpaceLogger,
     'data_dir': os.path.join(os.environ['DATA_DIR'], 'point_maze'),
     'epoch_cycles_train': 10,

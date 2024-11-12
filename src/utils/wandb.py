@@ -24,12 +24,12 @@ class WandBLogger:
         flat_config = flatten_dict(conf)
         filtered_config = {k: v for k, v in flat_config.items() if (k not in exclude and not inspect.isclass(v))}
         print("INIT WANDB")
+        wandb.login(key="16b8bc4e30001451f7147c319e5d771897227a17")
         wandb.init(
             resume=exp_name,
             project=project_name,
             config=filtered_config,
             dir=path,
-            entity=entity,
             notes=conf.notes if 'notes' in conf else ''
         )
 
