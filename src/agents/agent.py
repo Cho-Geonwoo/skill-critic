@@ -20,7 +20,7 @@ class BaseAgent(nn.Module):
     def __init__(self, config):
         super().__init__()
         self._hp = self._default_hparams().overwrite(config)
-        self.device = self._hp.device
+        self.device = f"cuda:{os.environ.get('GPU')}"
         self._is_train = True           # indicates whether agent should sample in training mode
         self._rand_act_mode = False     # indicates whether agent should act randomly (for warmup collection)
         self._rollout_mode = False      # indicates whether agent is run in rollout mode (omit certain policy outputs)

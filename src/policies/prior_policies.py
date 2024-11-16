@@ -1,3 +1,4 @@
+import os
 import torch
 import copy
 
@@ -59,7 +60,7 @@ class PriorInitializedPolicy(Policy):
     @staticmethod
     def update_model_params(params):
         # TODO: the device could be set to cpu even if GPU available
-        params.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        params.device = torch.device(f"cuda:{os.environ.get('GPU')}") if torch.cuda.is_available() else torch.device("cpu")
         params.batch_size = 1            # run only single-element batches for forward pass
 
 

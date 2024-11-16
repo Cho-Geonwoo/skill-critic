@@ -1,4 +1,4 @@
-
+import os
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -40,7 +40,7 @@ class HLInheritAgent(ActionPriorSACAgent):
         # sample batch and normalize
         experience_batch = self._sample_experience()
         experience_batch = self._normalize_batch(experience_batch)
-        experience_batch = map2torch(experience_batch, self._hp.device)
+        experience_batch = map2torch(experience_batch, f"cuda:{os.environ.get('GPU')}")
         experience_batch = self._preprocess_experience(experience_batch)
 
         policy_output = self._run_policy(experience_batch.observation)

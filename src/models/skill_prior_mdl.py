@@ -1,3 +1,4 @@
+import os
 from contextlib import contextmanager
 import itertools
 import copy
@@ -33,13 +34,12 @@ class SkillPriorMdl(BaseModel, ProbabilisticModel):
         self._hp = self._default_hparams()
         self._hp.overwrite(params)  # override defaults with config file
         self._hp.builder = LayerBuilderParams(self._hp.use_convs, self._hp.normalization)
-        self.device = self._hp.device
-
+        self.device = f"cuda:{os.environ.get('GPU')}"
         self.build_network()
 
         # optionally: optimize beta with dual gradient descent
         if self._hp.target_kl is not None:
-            self._log_beta = TensorModule(torch.zeros(1, requires_grad=True, device=self._hp.device))
+            self._log_beta = TensorModule(torch.zeros(1, requires_grad=True, device=f"cuda:{os.environ.get('GPU')}"))
             self._beta_opt = self._get_beta_opt()
 
         self.load_weights_and_freeze()
@@ -103,14 +103,15 @@ class SkillPriorMdl(BaseModel, ProbabilisticModel):
     def build_network(self):
         """Defines the network architecture (encoder aka inference net, decoder, prior)."""
         assert not self._hp.use_convs   # currently only supports non-image inputs
-        self.q = self._build_inference_net()
+        print(self.device)
+        self.q = self._build_inference_net().to(self.device)
         self.decoder = RecurrentPredictor(self._hp,
                                           input_size=self._hp.action_dim+self._hp.nz_vae,
-                                          output_size=self._hp.action_dim)
-        self.decoder_input_initalizer = self._build_decoder_initializer(size=self._hp.action_dim)
-        self.decoder_hidden_initalizer = self._build_decoder_initializer(size=self.decoder.cell.get_state_size())
+                                          output_size=self._hp.action_dim).to(self.device)
+        self.decoder_input_initalizer = self._build_decoder_initializer(size=self._hp.action_dim).to(self.device)
+        self.decoder_hidden_initalizer = self._build_decoder_initializer(size=self.decoder.cell.get_state_size()).to(self.device)
 
-        self.p = self._build_prior_ensemble()
+        self.p = self._build_prior_ensemble().to(self.device)
 
     def forward(self, inputs, use_learned_prior=False):
         """Forward pass of the src model.
@@ -252,6 +253,7 @@ class SkillPriorMdl(BaseModel, ProbabilisticModel):
     def _build_inference_net(self):
         # inference gets conditioned on state if decoding is also conditioned on state
         input_size = self._hp.action_dim + self.prior_input_size if self._hp.cond_decode else self._hp.action_dim
+
         return torch.nn.Sequential(
             BaseProcessingLSTM(self._hp, in_dim=input_size, out_dim=self._hp.nz_enc),
             torch.nn.Linear(self._hp.nz_enc, self._hp.nz_vae * 2)
@@ -267,7 +269,7 @@ class SkillPriorMdl(BaseModel, ProbabilisticModel):
                 def __init__(self, hp):
                     super().__init__()
                     self._hp = hp
-                    self.val = nn.Parameter(torch.zeros((1, size), requires_grad=True, device=self._hp.device))
+                    self.val = nn.Parameter(torch.zeros((1, size), requires_grad=True, device=f"cuda:{os.environ.get('GPU')}"))
 
                 def forward(self, state):
                     return self.val.repeat(find_tensor(state).shape[0], 1)
@@ -297,7 +299,8 @@ class SkillPriorMdl(BaseModel, ProbabilisticModel):
         if self._hp.cond_decode:
             inf_input = torch.cat((inf_input, self._learned_prior_input(inputs)[:, None]
                                         .repeat(1, inf_input.shape[1], 1)), dim=-1)
-        return MultivariateGaussian(self.q(inf_input)[:, -1])
+        q_value = self.q(inf_input)[:, -1]
+        return MultivariateGaussian(q_value)
 
     def compute_learned_prior(self, inputs, first_only=False):
         """Splits batch into separate batches for prior ensemble, optionally runs first or avg prior on whole batch.
@@ -351,7 +354,7 @@ class SkillPriorMdl(BaseModel, ProbabilisticModel):
         """Evaluates prior divergence as mean pairwise KL divergence of ensemble of priors."""
         assert self._hp.n_prior_nets > 1        # need more than one prior in ensemble to evaluate divergence
         if not isinstance(state, torch.Tensor):
-            state = torch.tensor(state, device=self._hp.device)
+            state = torch.tensor(state, device=f"cuda:{os.environ.get('GPU')}")
         if len(state.shape) == 1:
             state = state[None]
         state_batch = state.repeat(self._hp.n_prior_nets, 1) if len(state.shape) == 1 else \

@@ -102,7 +102,7 @@ class BaseModel(nn.Module):
 
         def get_filtered_weight_dict(checkpoint_path, scope):
             if os.path.isfile(checkpoint_path):
-                checkpoint = torch.load(checkpoint_path, map_location=self._hp.device)
+                checkpoint = torch.load(checkpoint_path, map_location=f"cuda:{os.environ.get('GPU')}")
                 filtered_state_dict = {}
                 remove_key_length = len(scope) + 1      # need to remove scope from checkpoint key
                 for key, item in checkpoint['state_dict'].items():

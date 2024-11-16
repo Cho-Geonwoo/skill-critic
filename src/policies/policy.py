@@ -1,3 +1,4 @@
+import os
 import torch.nn as nn
 import numpy as np
 import torch
@@ -89,4 +90,4 @@ class Policy(nn.Module):
 
     @property
     def device(self):
-        return torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        return torch.device(f"cuda:{os.environ.get('GPU')}") if torch.cuda.is_available() else torch.device("cpu")

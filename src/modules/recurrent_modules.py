@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 from funcsigs import signature
@@ -163,7 +164,7 @@ class CustomLSTMCell(BaseCell):
 
     def reset(self):
         # TODO make this trainable
-        self.hidden_var = torch.zeros(self._hp.batch_size, self.get_state_size(), device=self._hp.device)
+        self.hidden_var = torch.zeros(self._hp.batch_size, self.get_state_size(), device=f"cuda:{os.environ.get('GPU')}")
         
     def get_state_size(self):
         return self.hidden_size * self.n_layers * 2
@@ -244,8 +245,8 @@ class RecurrentPredictor(nn.Module):
     def __init__(self, hp, input_size, output_size):
         super().__init__()
         self._hp = hp
-        self.cell = ForwardLSTMCell(hp, input_size, output_size)
-        self.lstm = CustomLSTM(self.cell)
+        self.cell = ForwardLSTMCell(hp, input_size, output_size).to(f"cuda:{os.environ.get('GPU')}")
+        self.lstm = CustomLSTM(self.cell).to(f"cuda:{os.environ.get('GPU')}")
 
     def forward(self, lstm_initial_inputs, steps, lstm_inputs=None, lstm_static_inputs=None, lstm_hidden_init=None):
         if lstm_inputs is None:

@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 
@@ -73,7 +74,7 @@ class ClModelPolicy(Policy):
 
     @staticmethod
     def update_model_params(params):
-        params.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        params.device = torch.device(f"cuda:{os.environ.get('GPU')}") if torch.cuda.is_available() else torch.device("cpu")
         params.batch_size = 1  # run only single-element batches for forward pass
 
     @property

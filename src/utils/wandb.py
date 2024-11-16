@@ -26,7 +26,7 @@ class WandBLogger:
         print("INIT WANDB")
         wandb.login(key="16b8bc4e30001451f7147c319e5d771897227a17")
         wandb.init(
-            resume=exp_name,
+            # resume=exp_name,
             project=project_name,
             config=filtered_config,
             dir=path,

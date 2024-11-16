@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 
@@ -100,7 +101,7 @@ class RandActScheduledActionPriorSACAgent(ActionPriorSACAgent):
             # if schedule has warmup phase in which *only* prior is sampled, train policy to minimize divergence
             self.replay_buffer.append(experience_batch)
             experience_batch = self.replay_buffer.sample(n_samples=self._hp.batch_size)
-            experience_batch = map2torch(experience_batch, self._hp.device)
+            experience_batch = map2torch(experience_batch, "cuda:3")
             policy_output = self._run_policy(experience_batch.observation)
             policy_loss = policy_output.prior_divergence.mean()
             self._perform_update(policy_loss, self.policy_opt, self.policy)

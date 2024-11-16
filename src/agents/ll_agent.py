@@ -1,3 +1,4 @@
+import os
 from src.utils.general_utils import ParamDict, map_dict, AttrDict
 from src.utils.pytorch_utils import ten2ar, avg_grad_norm, TensorModule, check_shape, map2torch, map2np, parse_one_hot, make_one_hot
 
@@ -44,7 +45,7 @@ class LLInheritAgent(ActionPriorSACAgent):
         # sample batch and normalize
         experience_batch = self._sample_experience()
         experience_batch = self._normalize_batch(experience_batch)
-        experience_batch = map2torch(experience_batch, self._hp.device)
+        experience_batch = map2torch(experience_batch, f"cuda:{os.environ.get('GPU')}")
         experience_batch = self._preprocess_experience(experience_batch)
 
 

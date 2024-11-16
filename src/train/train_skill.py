@@ -211,7 +211,7 @@ class ModelTrainer(BaseTrainer):
 
     def setup_device(self):
         self.use_cuda = torch.cuda.is_available() and not self.args.debug
-        self.device = torch.device('cuda') if self.use_cuda else torch.device('cpu')
+        self.device = torch.device(f'cuda:{self.args.gpu}') if self.use_cuda else torch.device('cpu')
         if self.args.gpu != -1:
             os.environ["CUDA_VISIBLE_DEVICES"] = str(self.args.gpu)
 
@@ -394,4 +394,7 @@ def save_config(conf_path, exp_conf_path):
 
         
 if __name__ == '__main__':
-    ModelTrainer(args=get_args())
+    arguments = get_args()
+    os.environ["GPU"] = str(arguments.gpu)
+    ModelTrainer(args=arguments)
+

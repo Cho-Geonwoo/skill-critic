@@ -1,3 +1,4 @@
+import os
 from contextlib import contextmanager
 import torch
 import torch.nn as nn
@@ -21,7 +22,7 @@ class BCMdl(BaseModel):
         self._hp = self._default_hparams()
         self._hp.overwrite(params)  # override defaults with config file
         self._hp.builder = LayerBuilderParams(self._hp.use_convs, self._hp.normalization)
-        self.device = self._hp.device
+        self.device = f"cuda:{os.environ.get('GPU')}"
 
         self.build_network()
 

@@ -27,7 +27,7 @@ class ACAgent(BaseAgent):
         return super()._default_hparams().overwrite(default_dict)
 
     def _act(self, obs):
-        obs = map2torch(self._obs_normalizer(obs), self._hp.device)
+        obs = map2torch(self._obs_normalizer(obs), f"cuda:{os.environ.get('GPU')}")
         if len(obs.shape) == 1:     # we need batched inputs for policy
             policy_output = self._remove_batch(self.policy(obs[None]))
             policy_output = map2np(policy_output)
@@ -83,7 +83,7 @@ class SACAgent(ACAgent):
         self.critic_opts = [self._get_optimizer(self._hp.optimizer, critic, self._hp.critic_lr) for critic in self.critics]
 
         # define entropy multiplier alpha
-        self._log_alpha = TensorModule(torch.zeros(1, requires_grad=True, device=self._hp.device))
+        self._log_alpha = TensorModule(torch.zeros(1, requires_grad=True, device=f"cuda:{os.environ.get('GPU')}"))
         self.alpha_opt = self._get_optimizer(self._hp.optimizer, self._log_alpha, self._hp.alpha_lr)
         self._target_entropy = self._hp.target_entropy if self._hp.target_entropy is not None \
                                         else -1 * self._hp.policy_params.action_dim
@@ -119,7 +119,7 @@ class SACAgent(ACAgent):
             # sample batch and normalize
             experience_batch = self._sample_experience()
             experience_batch = self._normalize_batch(experience_batch)
-            experience_batch = map2torch(experience_batch, self._hp.device)
+            experience_batch = map2torch(experience_batch, f"cuda:{os.environ.get('GPU')}")
             experience_batch = self._preprocess_experience(experience_batch)
 
             policy_output = self._run_policy(experience_batch.observation)

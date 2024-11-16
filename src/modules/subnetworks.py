@@ -1,3 +1,4 @@
+import os
 import copy
 import math
 from functools import partial
@@ -401,7 +402,7 @@ class FixedPrior(nn.Module):
         self.hp = hp
 
     def forward(self, e_l, *args):  # ignored because fixed prior
-        return UnitGaussian([e_l.shape[0], self.hp.nz_vae], self.hp.device).tensor()
+        return UnitGaussian([e_l.shape[0], self.hp.nz_vae], f"cuda:{os.environ.get('GPU')}").tensor()
 
 
 class VariationalInference2LayerSharedPQ(nn.Module):
@@ -572,7 +573,7 @@ class HybridConvMLPEncoder(nn.Module):
             'n_layers': 3,              # number of layers in MLPs
             'normalization': 'none',    # normalization used in encoder network ['none', 'batch']
             'use_convs': False,
-            'device': None,
+            'device': f"cuda:{os.environ.get('GPU')}",
         })
 
     def forward(self, inputs):

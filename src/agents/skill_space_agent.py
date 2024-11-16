@@ -1,3 +1,4 @@
+import os
 from collections import deque
 import contextlib
 
@@ -35,8 +36,8 @@ class SkillSpaceAgent(BaseAgent):
             # generate action plan if the current one is empty
             split_obs = self._split_obs(obs)
             with no_batchnorm_update(self._policy) if obs.shape[0] == 1 else contextlib.suppress():
-                actions = self._policy.decode(map2torch(split_obs.z, self._hp.device),
-                                              map2torch(split_obs.cond_input, self._hp.device),
+                actions = self._policy.decode(map2torch(split_obs.z, f"cuda:{os.environ.get('GPU')}"),
+                                              map2torch(split_obs.cond_input, f"cuda:{os.environ.get('GPU')}"),
                                               self._policy.n_rollout_steps)
             self.action_plan = deque(split_along_axis(map2np(actions), axis=1))
         return AttrDict(action=self.action_plan.popleft())
@@ -58,7 +59,7 @@ class SkillSpaceAgent(BaseAgent):
         pass        # TODO(karl) only need to implement if we implement finetuning
 
     def _update_model_params(self):
-        self._hp.model_params.device = self._hp.device  # transfer device to low-level model
+        self._hp.model_params.device = f"cuda:{os.environ.get('GPU')}"  # transfer device to low-level model
         self._hp.model_params.batch_size = 1            # run only single-element batches
 
     def _act_rand(self, obs):
